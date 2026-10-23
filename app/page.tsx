@@ -1,33 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
-type Status = "Core" | "Collaborator" | "Available";
-type Person = { id: string; name: string; role: string; status: Status };
-const SEED: Person[] = [{ id: "book", name: "Book", role: "Founder / Eng", status: "Core" }];
-const STATUS: Status[] = ["Core", "Collaborator", "Available"];
-
-function useRoster() {
-  const [people, setPeople] = useState<Person[]>(SEED);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    try { const stored = localStorage.getItem("team-v2"); if (stored) setPeople(JSON.parse(stored) as Person[]); } catch { /* keep seed */ }
-    setReady(true);
-  }, []);
-  useEffect(() => { if (ready) localStorage.setItem("team-v2", JSON.stringify(people)); }, [people, ready]);
-  return [people, setPeople] as const;
-}
+import { useState, useSyncExternalStore } from "react";
+import { STATUSES, addPerson, filterPeople, removePerson, rosterStore, type Status } from "@/lib/team";
 
 export default function Home() {
-  const [people, setPeople] = useRoster();
+  const people = useSyncExternalStore(rosterStore.subscribe, rosterStore.getSnapshot, rosterStore.getServerSnapshot);
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState<Status>("Collaborator");
-  const visible = useMemo(() => people.filter((person) => `${person.name} ${person.role} ${person.status}`.toLowerCase().includes(query.toLowerCase())), [people, query]);
-  const addPerson = () => {
+  const visible = filterPeople(people, query);
+  const pinPerson = () => {
     if (!name.trim() || !role.trim()) return;
-    setPeople((current) => [{ id: crypto.randomUUID(), name: name.trim(), role: role.trim(), status }, ...current]);
+    rosterStore.update((current) => addPerson(current, { name, role, status }, crypto.randomUUID()));
     setName(""); setRole(""); setStatus("Collaborator");
   };
 
@@ -36,7 +21,7 @@ export default function Home() {
       <header className="crew-header">
         <div className="crew-logo">B<span>/</span>CREW</div>
         <div className="crew-header-copy"><span>STUDIO DIRECTORY</span><strong>LOCAL CUT / 01</strong></div>
-        <span className="crew-status"><i /> {people.length} names on the rail</span>
+        <span className="crew-status"><i /> {people.length} {people.length === 1 ? "name" : "names"} on the rail</span>
       </header>
       <section className="crew-intro">
         <div><p className="work-label">THE WORKBENCH</p><h1>People who<br /><em>make the cut.</em></h1></div>
@@ -53,7 +38,7 @@ export default function Home() {
                 <div className="strip-index">{String(index + 1).padStart(2, "0")}</div>
                 <div className="strip-person"><h3>{person.name}</h3><p>{person.role}</p></div>
                 <span className={`status-mark ${person.status.toLowerCase()}`}>{person.status}</span>
-                <button className="remove-button" aria-label={`Delete ${person.name}`} onClick={() => setPeople((current) => current.filter((item) => item.id !== person.id))}>×</button>
+                <button className="remove-button" aria-label={`Delete ${person.name}`} onClick={() => rosterStore.update((current) => removePerson(current, person.id))}>×</button>
               </article>
             ))}
           </div>
@@ -63,8 +48,8 @@ export default function Home() {
           <p className="board-note">This is local-only. Nothing is published or synced.</p>
           <label><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Alex" /></label>
           <label><span>Role / detail</span><input value={role} onChange={(event) => setRole(event.target.value)} placeholder="e.g. Product design" /></label>
-          <label><span>Availability mark</span><select value={status} onChange={(event) => setStatus(event.target.value as Status)}>{STATUS.map((item) => <option key={item}>{item}</option>)}</select></label>
-          <button className="pin-button" onClick={addPerson}>Pin to roster <span>↗</span></button>
+          <label><span>Availability mark</span><select value={status} onChange={(event) => setStatus(event.target.value as Status)}>{STATUSES.map((item) => <option key={item}>{item}</option>)}</select></label>
+          <button className="pin-button" onClick={pinPerson}>Pin to roster <span>↗</span></button>
         </aside>
       </section>
       <footer className="crew-footer"><span>BOOKCHAOWALIT / TEAM</span><span>LOCAL BROWSER STATE · DEMO-GRADE</span></footer>
