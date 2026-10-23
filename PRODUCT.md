@@ -1,51 +1,43 @@
-# bookchaowalit-team-frontend — Product brief
+# Team (crew workbench) — Product truth
 
-**Slug:** `bookchaowalit-website/bookchaowalit-team-frontend`  
-**Generated:** 2026-08-11 (bulk Book Dev closeout)  
-**Status:** starter / portfolio boundary
+> Inferred from the code and copy (no user interview). Checked against the portfolio card claims review
+> (`portfolio-site-web/docs/audits/CARD-CLAIMS-REVIEW-2026-10.md`, row `team`) on 2026-10-23.
 
-## Current product truth
+## What it is
 
-- This is a local-only studio people directory with search, add, and delete actions.
-- Records are stored in this browser; there are no accounts, invites, permissions, or remote sync.
+A client-only roster page styled as a film work print. Entries live in the visitor's browser (`localStorage`, key
+`team-v2`). There is no backend, account or shared directory.
 
-## Purpose
+## Who it is for
 
-Portfolio repository under Book Dev. This brief records ownership and the
-current honest status so the nested tree is not an empty shell in the task
-system.
+A portfolio visitor (or the owner) who wants a quick private list of people, their role and availability.
 
-## Runnable path
+## What works today
 
-See `README.md` for install and run instructions when present.
+1. Pin a person with a name and role (both required) and an availability mark: Core, Collaborator or Available.
+2. The header counts names on the rail; the roster shows how many match the search.
+3. Search across name, role and mark (case-insensitive); remove a person.
+4. The roster survives a reload in the same browser. Saved entries of the wrong shape or with an unknown mark are
+   dropped instead of breaking the page; if storage is blocked, the roster lasts for the visit only.
+5. `/api/mcp` answers JSON-RPC `initialize` and `tools/list` with an empty tool list: the roster never reaches the
+   server, so any `tools/call` is refused with an error.
+6. Front-end and server errors go to Sentry (errors only, personal data stripped) when `NEXT_PUBLIC_SENTRY_DSN` is set.
 
-## Limits
+## What does not work (and must not be claimed)
 
-- Not claimed as production-ready unless README and tests prove it.
-- Mobile smoke / emulator acceptance is separate and toolchain-dependent.
+- No skill tags, project associations, contact actions or onboarding-time savings (the portfolio card was corrected
+  to Prototype in the 2026-10 review).
+- No editing an entry, no sync between devices, no export.
 
-## Source README excerpt
+## Live URL and deploy state
 
-```
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+- Live: https://team.bookchaowalit.com (HTTP 200 on 2026-10-23).
+- The Vercel project `bookchaowalit-team-frontend` is deployed only by CLI. Its last production deploy is the CVE
+  patch (2026-10-23, CLI, commit 50c4766). Its Git link names the old repository `bookchaowalit/bookchaowalit-team-frontend`,
+  so a push to `main` does not deploy: the L2 work (tests, Sentry, lib store, truthful MCP route) stays undeployed
+  until the owner reconnects Vercel Git to this repository (owner action D9). `NEXT_PUBLIC_SENTRY_DSN` is already set
+  on the Vercel project (Sentry project `community-team-web`, org `personal-yu0`).
 
-## Getting Started
+## Boundaries
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize an
-```
+- Browser-only apart from the stateless `/api/mcp` route.
