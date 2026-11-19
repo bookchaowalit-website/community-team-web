@@ -102,3 +102,17 @@ export function createRosterStore(getStorage: () => StorageLike | undefined, key
 }
 
 export const rosterStore = createRosterStore(() => (typeof window === "undefined" ? undefined : window.localStorage));
+
+export type Filter = "All" | Status;
+
+/** People in `filter` ("All" for everyone) that match `query`. */
+export function peopleIn(people: Person[], filter: Filter, query: string): Person[] {
+  return filterPeople(people, query).filter((person) => filter === "All" || person.status === filter);
+}
+
+/** Put a removed person back before the person who followed them (or at the end), for Undo. */
+export function restorePerson(people: Person[], person: Person, beforeId: string | null): Person[] {
+  if (people.some((item) => item.id === person.id)) return people;
+  const at = beforeId ? people.findIndex((item) => item.id === beforeId) : -1;
+  return at < 0 ? [...people, person] : [...people.slice(0, at), person, ...people.slice(at)];
+}

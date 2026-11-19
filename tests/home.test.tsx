@@ -1,20 +1,25 @@
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import Home from "@/app/page";
+import RootLayout, { metadata } from "@/app/layout";
+
+vi.mock("next/font/google", () => ({ Geist: () => ({ variable: "font-geist" }) }));
 
 describe("home page", () => {
-  it("renders the crew workbench, the entry form and the local-only notice", () => {
+  it("renders the seed roster, the availability lists and the local-only note on the App shell", () => {
     const html = renderToString(<Home />);
-    expect(html).toContain("People who");
-    expect(html).toContain("Pin to roster");
-    expect(html).toContain("This is local-only. Nothing is published or synced.");
-    expect(html).toContain("LOCAL BROWSER STATE · DEMO-GRADE");
+    expect(html).toContain("<h1>Everyone</h1>");
+    expect(html).toContain("Founder / Eng");
+    expect(html).toMatch(/Everyone<\/span><span class="as-count">1</);
+    expect(html).toContain("1<!-- --> <!-- -->person");
+    expect(html).toContain("Add person");
+    expect(html).toContain("Nothing is published or synced");
+    expect(html).toContain('href="https://bookchaowalit.com/"');
   });
 
-  it("renders the seed roster on the server with every availability mark to choose from", () => {
-    const html = renderToString(<Home />);
-    expect(html).toContain("Founder / Eng");
-    expect(html).toMatch(/1<!-- --> <!-- -->name<!-- --> on the rail/);
-    expect(html).toContain('<option>Core</option><option selected="">Collaborator</option><option>Available</option>');
+  it("puts the font variable on <html> and the site's own domain in metadata", () => {
+    const html = renderToString(<RootLayout><p>child</p></RootLayout>);
+    expect(html).toContain('<html lang="en" class="font-geist"');
+    expect(String(metadata.metadataBase)).toBe("https://team.bookchaowalit.com/");
   });
 });

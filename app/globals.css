@@ -1,34 +1,7 @@
 @import "tailwindcss";
+@import "./app-shell.css";
 
-:root { --background: #171717; --foreground: #f2efe7; }
-@theme inline { --color-background: var(--background); --color-foreground: var(--foreground); }
-* { box-sizing: border-box; }
-body { background: #171717; color: #f2efe7; font-family: "Trebuchet MS", Verdana, sans-serif; margin: 0; }
-button, input, select { font: inherit; } button { cursor: pointer; }
-.crew-room { min-height: 100vh; overflow: hidden; padding: 24px clamp(18px, 5vw, 78px) 24px; }
-.crew-header, .crew-footer { align-items: center; display: flex; gap: 22px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; }
-.crew-logo { color: #ff7047; font-size: 17px; letter-spacing: -.08em; } .crew-logo span { color: #f2efe7; }
-.crew-header-copy { border-left: 1px solid #514b43; display: grid; gap: 3px; padding-left: 20px; } .crew-header-copy span { color: #a5a097; } .crew-header-copy strong { color: #f2efe7; font-weight: 400; }
-.crew-status { color: #a5a097; margin-left: auto; } .crew-status i { background: #95ca8d; border-radius: 50%; display: inline-block; height: 7px; margin-right: 7px; width: 7px; }
-.crew-intro { align-items: end; display: flex; gap: 60px; justify-content: space-between; margin: clamp(80px, 13vh, 150px) auto 62px; max-width: 1280px; }
-.work-label { color: #ff7047; font-size: 10px; letter-spacing: .2em; margin: 0 0 16px; text-transform: uppercase; }
-.crew-intro h1 { font-family: Georgia, serif; font-size: clamp(58px, 9vw, 130px); font-weight: 400; letter-spacing: -.09em; line-height: .82; margin: 0; }
-.crew-intro h1 em, .clip-board h2 em { color: #ff7047; font-style: italic; }
-.intro-copy { color: #a5a097; font-size: 15px; line-height: 1.6; margin: 0 0 6px; max-width: 300px; }
-.perforation { display: flex; gap: 11px; margin: 0 auto 42px; max-width: 1280px; overflow: hidden; }
-.perforation i { background: #514b43; display: block; flex: 0 0 8px; height: 4px; }
-.workbench { display: grid; gap: 34px; grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr); margin: 0 auto; max-width: 1280px; }
-.rail-heading { align-items: end; border-bottom: 1px solid #514b43; display: flex; justify-content: space-between; padding-bottom: 18px; }
-.rail-heading .work-label { margin: 0 0 7px; } .rail-heading h2 { font-family: Georgia, serif; font-size: 46px; font-weight: 400; letter-spacing: -.07em; margin: 0; } .rail-heading > span { color: #ff7047; font-family: Georgia, serif; font-size: 34px; }
-.crew-search { color: #a5a097; display: grid; font-size: 10px; gap: 8px; letter-spacing: .16em; margin: 24px 0 16px; text-transform: uppercase; } .crew-search input { background: transparent; border: 1px solid #514b43; color: #f2efe7; outline: 0; padding: 12px; } .crew-search input:focus { border-color: #ff7047; }
-.film-rail { border-top: 10px solid #514b43; }
-.crew-strip { align-items: center; border-bottom: 1px solid #514b43; display: grid; gap: 18px; grid-template-columns: 42px 1fr auto 28px; min-height: 92px; padding: 16px 0; }
-.strip-index { color: #ff7047; font-family: Georgia, serif; font-size: 23px; } .strip-person h3 { font-family: Georgia, serif; font-size: 28px; font-weight: 400; letter-spacing: -.04em; margin: 0; } .strip-person p { color: #a5a097; font-size: 12px; margin: 5px 0 0; }
-.status-mark { border: 1px solid #70695e; color: #d5cec1; font-size: 9px; letter-spacing: .12em; padding: 6px 8px; text-transform: uppercase; } .status-mark.core { border-color: #95ca8d; color: #95ca8d; } .status-mark.available { border-color: #ff7047; color: #ff7047; }
-.remove-button { background: transparent; border: 0; color: #a5a097; font-size: 22px; } .remove-button:hover { color: #ff7047; } .empty-rail { color: #a5a097; padding: 30px 0; }
-.clip-board { background: #f2efe7; color: #171717; padding: clamp(24px, 4vw, 46px); position: relative; }
-.clip-board .work-label { color: #b84d2d; margin-top: 8px; } .clip-board h2 { font-family: Georgia, serif; font-size: clamp(36px, 4vw, 54px); font-weight: 400; letter-spacing: -.07em; line-height: .9; margin: 0; } .board-note { color: #6e675d; font-size: 12px; line-height: 1.5; margin: 22px 0 30px; }
-.clip-board label { color: #6e675d; display: grid; font-size: 10px; gap: 8px; letter-spacing: .12em; margin-top: 16px; text-transform: uppercase; } .clip-board input, .clip-board select { background: transparent; border: 0; border-bottom: 1px solid #a7a094; color: #171717; outline: 0; padding: 9px 0; width: 100%; } .clip-board input:focus, .clip-board select:focus { border-color: #171717; }
-.pin-button { align-items: center; background: #171717; border: 0; color: #f2efe7; display: flex; justify-content: space-between; margin-top: 32px; padding: 14px 16px; width: 100%; } .pin-button:hover { background: #ff7047; color: #171717; } .pin-button span { font-size: 18px; }
-.crew-footer { border-top: 1px solid #514b43; color: #a5a097; justify-content: space-between; margin: 52px auto 0; max-width: 1280px; padding-top: 18px; }
-@media (max-width: 760px) { .crew-header-copy, .crew-status { display: none; } .crew-intro { align-items: start; flex-direction: column; gap: 26px; margin: 80px auto 55px; } .crew-intro h1 { font-size: clamp(58px, 18vw, 90px); } .workbench { grid-template-columns: 1fr; } .crew-strip { gap: 9px; grid-template-columns: 30px 1fr 26px; } .status-mark { grid-column: 2; grid-row: 2; justify-self: start; } .remove-button { grid-column: 3; grid-row: 1 / span 2; } .crew-footer { align-items: start; flex-direction: column; gap: 8px; } }
+html, body { margin: 0; background: var(--as-bg); }
+
+/* Team additions on top of the App shell. */
+.tm-center { justify-content: center; }

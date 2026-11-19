@@ -1,44 +1,18 @@
-# Design system — Team
+# Design
 
-## Overview
+Since 2026-11-19 the team roster uses the shared **App shell** (see `APP-SHELL.md`; `app/app-shell.css` and `components/app-shell.tsx` are copied byte for byte
+from the reference site). It replaced the earlier one-off look, whose small uppercase labels, unloaded or
+render-blocking fonts and low-contrast text failed the design floor (review 2026-11-11).
 
-The team directory is a film-cutting workbench. A dark work-print rail holds the roster while a warm paper clip-board handles the local-only add flow.
+- Sidebar of availability (Everyone / Core / Collaborator / Available with counts; a pill row on phones),
+  head with h1, count, search and **Add person** next to the list, so adding is in the first phone viewport.
+  The composer opens in place (name, role, availability).
+- Rows: name, role, an availability pill (text + tint) and a labelled Remove button (44px). Removing is
+  undoable for a few seconds; no confirm dialog.
+- Empty states differ for an empty roster, an empty availability list and a search with no match
+  (Clear search puts focus back in the field).
+- Every control keeps the shell's 3px focus ring; no `outline: 0`.
 
-## Colors
-
-- #171717 — matte workbench black.
-- #F2EFE7 — clip-board paper and primary light surface.
-- #FF7047 — tape-orange action accent.
-- #95CA8D — core availability mark.
-- #A5A097 — pencil-gray secondary text.
-
-## Typography
-
-Trebuchet MS keeps the directory labels practical. Georgia is the human voice for names and editorial headings, making the roster feel authored rather than like a generic admin table.
-
-## Layout
-
-The page moves from a large workbench title to a perforated divider, then splits into a wide select rail and a narrow entry board. Roster rows preserve a visible index, name, role, status, and delete affordance.
-
-## Elevation & Depth
-
-The clip-board is the only raised material: a paper field with a tape strip at the top. The roster stays flat against black and uses rules as the organizing depth cue.
-
-## Shapes
-
-The system is square, tactile, and tool-like. Thin rules, perforation blocks, and underline inputs replace rounded cards and pills.
-
-## Components
-
-- Studio header and local-state count
-- Roster search
-- Film rail with indexed crew strips
-- Availability marks and delete actions
-- Clip-board add form
-
-## Do's and Don'ts
-
-- Do keep local-only behavior explicit.
-- Do use the orange only for actions, emphasis, and tape-like marks.
-- Don't imply employee accounts, invitations, or remote persistence.
-- Don't turn the roster into a grid of identical profile cards.
+Floor: Geist via `next/font` (variable on `<html>`), text ≥ 12px, controls ≥ 44px, 4.5:1 text contrast in
+light and dark, 3px focus ring, forced-colors support, no horizontal scroll at 320px. `/more-projects`
+redirects (308) to https://bookchaowalit.com/ and the footer links there.

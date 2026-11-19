@@ -105,3 +105,16 @@ describe("createRosterStore", () => {
     expect(store.getSnapshot().map((entry) => entry.id)).toEqual(["mem"]);
   });
 });
+
+describe("peopleIn and restorePerson", () => {
+  it("filters by status and query and restores in place", async () => {
+    const { peopleIn, restorePerson } = await import("@/lib/team");
+    const a = { id: "a", name: "A", role: "x", status: "Core" as const };
+    const b = { id: "b", name: "B", role: "y", status: "Available" as const };
+    expect(peopleIn([a, b], "Available", "")).toEqual([b]);
+    expect(peopleIn([a, b], "All", "x")).toEqual([a]);
+    expect(restorePerson([b], a, "b")).toEqual([a, b]);
+    expect(restorePerson([a], b, null)).toEqual([a, b]);
+    expect(restorePerson([a, b], b, null)).toEqual([a, b]);
+  });
+});
