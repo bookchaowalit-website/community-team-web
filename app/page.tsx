@@ -6,7 +6,10 @@ import { STATUSES, addPerson, peopleIn, restorePerson, rosterStore, type Filter,
 
 const EMPTY_DRAFT: Draft = { name: "", role: "", status: "Collaborator" };
 
-type Removed = { person: Person; beforeId: string | null; nextShown?: string; prevShown?: string; viaKeyboard: boolean };
+// beforeId: the person that followed it when it was removed. nextShown / prevShown: the rows shown around it, for focus.
+type RemovedEntry = { person: Person; beforeId: string | null; nextShown?: string; prevShown?: string };
+type RemovedBatch = { entries: RemovedEntry[]; viaKeyboard: boolean };
+const removedLabel = (entries: RemovedEntry[]) => (entries.length === 1 ? `Removed ${entries[0].person.name}` : `Removed ${entries.length} people`);
 
 const TONE: Record<Status, Tone> = { Core: "green", Collaborator: "amber", Available: "grey" };
 const FILTERS: Filter[] = ["All", ...STATUSES];
@@ -24,7 +27,11 @@ export default function Home() {
   const [filter, setFilter] = useState<Filter>("All");
   const [composing, setComposing] = useState(false);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
-  const [removed, setRemoved] = useState<Removed | null>(null);
+  // Every removal still inside the Undo window: one Undo puts them all back where they were.
+  const [removed, setRemovedState] = useState<RemovedBatch | null>(null);
+  // The latest batch, so two removals before a re-render still both land in it.
+  const removedRef = useRef<RemovedBatch | null>(null);
+  const setRemoved = (batch: RemovedBatch | null) => { removedRef.current = batch; setRemovedState(batch); };
   const [toastFocused, setToastFocused] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
@@ -65,10 +72,10 @@ export default function Home() {
     observer?.observe(toast);
     return () => { observer?.disconnect(); rootStyle.removeProperty("--as-toast-space"); };
   }, [toastShown]);
-  // The toast closes 6 s after a removal, but never while it holds focus.
+  // The toast closes 6 s after the latest removal (each removal restarts it), but never while it holds focus.
   useEffect(() => {
     if (!removed || toastFocused) return;
-    const timer = window.setTimeout(() => setRemoved(null), 6000);
+    const timer = window.setTimeout(() => { removedRef.current = null; setRemovedState(null); }, 6000);
     return () => window.clearTimeout(timer);
   }, [removed, toastFocused]);
 
@@ -94,20 +101,27 @@ export default function Home() {
     if (index < 0) return;
     const shownAt = visible.findIndex((item) => item.id === person.id);
     setPeople((items) => items.filter((item) => item.id !== person.id));
-    setRemoved({ person, beforeId: people[index + 1]?.id ?? null, nextShown: visible[shownAt + 1]?.id, prevShown: shownAt > 0 ? visible[shownAt - 1].id : undefined, viaKeyboard });
-    setAnnouncement(`Removed ${person.name}. Undo is available for a few seconds.`);
+    const entry: RemovedEntry = { person, beforeId: people[index + 1]?.id ?? null, nextShown: visible[shownAt + 1]?.id, prevShown: shownAt > 0 ? visible[shownAt - 1].id : undefined };
+    const entries = [...(removedRef.current?.entries ?? []), entry];
+    setRemoved({ entries, viaKeyboard });
+    setAnnouncement(entries.length === 1 ? `Removed ${person.name}. Undo is available for a few seconds.` : `Removed ${entries.length} people. Undo is available for a few seconds.`);
   }
   function closeToast(ids?: string[]) {
-    focusNext.current = ids ?? [removed?.nextShown, removed?.prevShown].filter((id): id is string => Boolean(id));
+    const last = removedRef.current?.entries.at(-1);
+    // Dismissed: the row after the removed one, else the one before it.
+    focusNext.current = ids ?? [last?.nextShown, last?.prevShown].filter((id): id is string => Boolean(id));
     setRemoved(null);
     setToastFocused(false);
   }
   function undo() {
-    if (!removed) return;
-    const { person, beforeId } = removed;
-    setPeople((items) => restorePerson(items, person, beforeId));
-    setAnnouncement(`Restored ${person.name}.`);
-    closeToast([person.id]);
+    const entries = removedRef.current?.entries;
+    if (!entries?.length) return;
+    // Latest removal first: each goes back before the person that followed it when it was removed.
+    setPeople((current) => entries.reduceRight((list, { person, beforeId }) => restorePerson(list, person, beforeId), current));
+    const latest = entries[entries.length - 1].person;
+    setAnnouncement(entries.length === 1 ? `Restored ${latest.name}.` : `Restored ${entries.length} people.`);
+    // Undone: back to the restored row the user removed last.
+    closeToast([latest.id]);
   }
 
   const title = filter === "All" ? "Everyone" : filter;
@@ -211,8 +225,8 @@ export default function Home() {
           onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setToastFocused(false); }}
           onKeyDown={(event) => { if (event.key === "Escape") closeToast(); }}
         >
-          <span>Removed {removed.person.name}</span>
-          <button ref={undoRef} type="button" className="as-plain" onClick={undo} aria-label="Undo remove">Undo</button>
+          <span>{removedLabel(removed.entries)}</span>
+          <button ref={undoRef} type="button" className="as-plain" onClick={undo} aria-label={removed.entries.length === 1 ? "Undo remove" : `Undo remove of ${removed.entries.length} people`}>Undo</button>
         </div>
       ) : null}
 
