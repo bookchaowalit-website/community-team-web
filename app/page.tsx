@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { AppFoot, AppTop, ListButton, Pill, PlusIcon, type Tone } from "@/components/app-shell";
 import { STATUSES, addPerson, peopleIn, restorePerson, rosterStore, type Filter, type Person, type PersonDraft as Draft, type Status } from "@/lib/team";
 
@@ -18,6 +18,44 @@ const FILTERS: Filter[] = ["All", ...STATUSES];
 function createId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
   return `person-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+// One line of the role per row (App shell rule); a longer one gets Show more.
+function RoleDetail({ body }: { body: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const id = useId();
+  const [expanded, setExpanded] = useState(false);
+  const [clipped, setClipped] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => { if (el.dataset.expanded !== "true") setClipped(el.scrollWidth > el.clientWidth); };
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(el);
+    measure();
+    // A web font that loads later can widen the text without resizing the box, so measure again then.
+    let live = true;
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    const remeasure = () => { if (live) measure(); };
+    fonts?.ready?.then(remeasure, () => {});
+    fonts?.addEventListener?.("loadingdone", remeasure);
+    return () => {
+      live = false;
+      observer?.disconnect();
+      fonts?.removeEventListener?.("loadingdone", remeasure);
+    };
+  }, [body]);
+  const long = expanded || clipped || body.includes("\n");
+  return (
+    <>
+      <p ref={ref} id={id} className="as-row-detail" data-expanded={expanded ? "true" : undefined}>{body}</p>
+      {long ? (
+        <button type="button" className="as-plain as-row-more" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(!expanded)}>
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      ) : null}
+    </>
+  );
 }
 
 export default function Home() {
@@ -187,7 +225,7 @@ export default function Home() {
                 <li className="as-row" key={person.id} data-person={person.id}>
                   <div>
                     <h3>{person.name}</h3>
-                    <p className="as-row-detail">{person.role}</p>
+                    <RoleDetail body={person.role} />
                   </div>
                   <Pill tone={TONE[person.status as Status] ?? "grey"}>{person.status}</Pill>
                   <button type="button" className="as-plain as-danger" aria-label={`Remove ${person.name}`} onClick={(event) => remove(person, event.detail === 0)}>Remove</button>

@@ -156,3 +156,45 @@ describe("batch Undo", () => {
     expect(document.activeElement).toBe(removeButton(1));
   });
 });
+
+describe("long roles", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Reflect.deleteProperty(document, "fonts");
+  });
+  const rerender = () => {
+    act(() => root.unmount());
+    root = createRoot(host);
+    act(() => root.render(<Home />));
+  };
+
+  it("a clipped role gets Show more / Show less", () => {
+    vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(300);
+    rerender();
+    const more = button("Show more");
+    expect(more.getAttribute("aria-expanded")).toBe("false");
+    const detail = host.querySelector<HTMLElement>(`#${CSS.escape(more.getAttribute("aria-controls")!)}`)!;
+    expect(detail.className).toContain("as-row-detail");
+    press(more);
+    expect(detail.dataset.expanded).toBe("true");
+    expect(button("Show less").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("a role that fits has no Show more, and is measured again when fonts are ready", async () => {
+    let fontsReady!: () => void;
+    const ready = new Promise<void>((resolve) => { fontsReady = resolve; });
+    Object.defineProperty(document, "fonts", { configurable: true, value: { ready, addEventListener: vi.fn(), removeEventListener: vi.fn() } });
+    let wide = 200;
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockImplementation(function (this: HTMLElement) {
+      return this.classList.contains("as-row-detail") ? wide : 200;
+    });
+    rerender();
+    expect(button("Show more")).toBeUndefined();
+    wide = 260;
+    await act(async () => { fontsReady(); await ready; });
+    expect(button("Show more")).toBeDefined();
+  });
+});
+
