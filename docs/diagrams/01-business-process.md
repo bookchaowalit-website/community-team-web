@@ -9,7 +9,8 @@ Last reviewed: 2026-11-28 · commit `03bac33`
 ```mermaid
 flowchart LR
   PUSH["push to main"] --> CI["CI: shared Node workflow + security scan"]
-  PUSH -. "Git link names old repo [ต้องยืนยัน]" .-> VERCEL["Vercel project, deployed by CLI"]
+  PUSH -. "no auto deploy: Git link names old repo [ต้องยืนยัน]" .-> VERCEL["Vercel project"]
+  OWNER["owner runs Vercel CLI deploy, separate from CI"] --> VERCEL
   VERCEL --> SITE["live site"]
   SITE --> PAGE["app/page.tsx client page"]
   PAGE --> LOAD{"localStorage team-v2 readable and valid?"}
@@ -24,7 +25,7 @@ flowchart LR
   RM --> WRITE
   WRITE --> TABS["storage event refreshes other tabs"]
   WRITE -->|"storage blocked or full"| MEM["kept in memory for this visit only"]
-  PAGE -. "error, only if NEXT_PUBLIC_SENTRY_DSN set" .-> SENTRY["Sentry, errors only, personal data stripped"]
+  PAGE -. "error, only if NEXT_PUBLIC_SENTRY_DSN set" .-> SENTRY["Sentry, errors only: beforeSend drops request, user, breadcrumbs, extra, stack vars and URL queries"]
   MCPCALL["MCP client POST /api/mcp"] --> MCP{"method"}
   MCP -->|"initialize, tools/list"| EMPTY["answers, tool list is empty"]
   MCP -->|"tools/call, unknown method, bad JSON"| RPCERR["JSON-RPC error, HTTP 400"]
@@ -36,6 +37,7 @@ Sources: `app/page.tsx`, `lib/team.ts`, `app/api/mcp/route.ts`, `lib/sentry.ts`,
 
 - แก้รายชื่อหลังปัก ซิงก์ข้ามอุปกรณ์ และ export ทำไม่ได้ (`PRODUCT.md`)
 - ไม่มี skill tag การเชื่อมโปรเจกต์ หรือปุ่มติดต่อ
+- ข้อยกเว้นของ "อยู่ในเบราว์เซอร์เท่านั้น": ถ้าตั้ง `NEXT_PUBLIC_SENTRY_DSN` รายงานข้อผิดพลาดที่ผ่าน `scrubEvent` ใน `lib/sentry.ts` จะถูกส่งไป Sentry; ไม่ส่ง tracing หรือ replay
 
 ## To-Be
 
