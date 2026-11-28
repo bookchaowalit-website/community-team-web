@@ -12,7 +12,7 @@ flowchart LR
   PUSH -. "no auto deploy: Git link names old repo [ต้องยืนยัน]" .-> VERCEL["Vercel project"]
   OWNER["owner runs Vercel CLI deploy, separate from CI"] --> VERCEL
   VERCEL --> SITE["live site"]
-  SITE --> PAGE["app/page.tsx client page"]
+  SITE -. "live lags main until Git relink, 50c4766 on 2026-10-23 [ต้องยืนยัน]" .-> PAGE["app/page.tsx client page, as in main"]
   PAGE --> LOAD{"localStorage team-v2 readable and valid?"}
   LOAD -->|"no, bad JSON or blocked"| SEED["1 seed person: Book, Core"]
   LOAD -->|yes| LIST["roster via parsePeople, unknown marks and wrong shape dropped"]
@@ -20,11 +20,16 @@ flowchart LR
   LIST --> VIEW
   VIEW --> ADD{"name and role both filled?"}
   ADD -->|no| NOOP["roster unchanged, nothing written"]
-  ADD -->|yes| WRITE["person pinned with a mark"]
+  ADD -->|yes| ADDN["person pinned with a mark"]
+  ADDN --> WRITE["save roster"]
   VIEW --> RM["Remove, toast with Undo"]
-  RM --> WRITE
+  RM --> DEL["remove: saved roster minus this person"]
+  DEL --> WRITE
+  DEL --> UNDO["Undo in toast: person put back"]
+  UNDO --> WRITE
   WRITE --> TABS["storage event refreshes other tabs"]
   WRITE -->|"storage blocked or full"| MEM["kept in memory for this visit only"]
+  SRV["server request error: instrumentation onRequestError"] -. "only if DSN set, same scrub" .-> SENTRY
   PAGE -. "error, only if NEXT_PUBLIC_SENTRY_DSN set" .-> SENTRY["Sentry, errors only: beforeSend drops request, user, breadcrumbs, extra, stack vars and URL queries"]
   MCPCALL["MCP client POST /api/mcp"] --> MCP{"method"}
   MCP -->|"initialize, tools/list"| EMPTY["answers, tool list is empty"]
@@ -47,7 +52,7 @@ Sources: `app/page.tsx`, `lib/team.ts`, `app/api/mcp/route.ts`, `lib/sentry.ts`,
 
 | ID | As-Is → To-Be | Status | Owner | Evidence |
 |---|---|---|---|---|
-| G1 | push ไป main ไม่ deploy (Vercel link ชี้ repo เดิม deploy ด้วย CLI) → Vercel Git เชื่อม repo นี้ push แล้ว deploy | decide | owner | `PRODUCT.md` §Live URL and deploy state (owner action D9, เขียนไว้ 2026-10-23) |
+| G1 | ณ 2026-10-23 push ไป main ไม่ deploy (Vercel link ชี้ repo เดิม deploy ด้วย CLI) [ต้องยืนยัน] → Vercel Git เชื่อม repo นี้ push แล้ว deploy | decide | owner | `PRODUCT.md` §Live URL and deploy state (owner action D9, เขียนไว้ 2026-10-23) |
 | G2 | ไม่มี To-Be ของกระบวนการ (ฟีเจอร์ใหม่ เช่น เก็บข้อมูลฝั่ง server) → owner กำหนดหรือยืนยันว่าคงเป็นเดโมในเบราว์เซอร์ | decide | owner | ไม่มีใน `PRODUCT.md` ส่วน What does not work |
 
 ## Open questions
