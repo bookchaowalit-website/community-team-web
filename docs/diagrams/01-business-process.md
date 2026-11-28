@@ -9,10 +9,9 @@ Last reviewed: 2026-11-28 · commit `03bac33`
 ```mermaid
 flowchart LR
   PUSH["push to main"] --> CI["CI: shared Node workflow + security scan"]
-  PUSH -. "no auto deploy: Git link names old repo [ต้องยืนยัน]" .-> VERCEL["Vercel project"]
-  OWNER["owner runs Vercel CLI deploy, separate from CI"] --> VERCEL
-  VERCEL --> SITE["live site"]
-  SITE -. "live lags main until Git relink, 50c4766 on 2026-10-23 [ต้องยืนยัน]" .-> PAGE["app/page.tsx client page, as in main"]
+  PUSH -->|"Vercel Git link deploys main, verified 2026-11-28"| VERCEL["Vercel project"]
+  VERCEL -->|"production = main HEAD 67d4122, latest deploy via Vercel CLI, verified 2026-11-28"| SITE["live site"]
+  SITE --> PAGE["app/page.tsx client page, as in main"]
   PAGE --> LOAD{"localStorage team-v2 readable and valid?"}
   LOAD -->|"no, bad JSON or blocked"| SEED["1 seed person: Book, Core"]
   LOAD -->|yes| LIST["roster via parsePeople, unknown marks and wrong shape dropped"]
@@ -46,15 +45,15 @@ Sources: `app/page.tsx`, `lib/team.ts`, `app/api/mcp/route.ts`, `lib/sentry.ts`,
 
 ## To-Be
 
-ไม่มี To-Be ที่เขียนไว้ สำหรับกระบวนการของแอป (`PRODUCT.md` ระบุเฉพาะสิ่งที่ไม่ทำ และเป้าหมาย deploy ผ่าน Vercel Git ซึ่งอยู่ในตาราง Gap)
+ไม่มี To-Be ที่เขียนไว้ สำหรับกระบวนการของแอป (`PRODUCT.md` ระบุเฉพาะสิ่งที่ไม่ทำ และเป้าหมาย deploy ผ่าน Vercel Git ซึ่งทำแล้ว ดูตาราง Gap)
 
 ## Gap
 
 | ID | As-Is → To-Be | Status | Owner | Evidence |
 |---|---|---|---|---|
-| G1 | ณ 2026-10-23 push ไป main ไม่ deploy (Vercel link ชี้ repo เดิม deploy ด้วย CLI) [ต้องยืนยัน] → Vercel Git เชื่อม repo นี้ push แล้ว deploy | decide | owner | `PRODUCT.md` §Live URL and deploy state (owner action D9, เขียนไว้ 2026-10-23) |
+| G1 | ณ 2026-10-23 push ไป main ไม่ deploy (Vercel link ชี้ repo เดิม deploy ด้วย CLI) → Vercel Git เชื่อม repo นี้ push แล้ว deploy | done | owner | `PRODUCT.md` §Live URL and deploy state (owner action D9, เขียนไว้ 2026-10-23); Vercel API 2026-11-28: project `bookchaowalit-team-frontend` Git link → `bookchaowalit-website/community-team-web`, production branch `main` |
 | G2 | ไม่มี To-Be ของกระบวนการ (ฟีเจอร์ใหม่ เช่น เก็บข้อมูลฝั่ง server) → owner กำหนดหรือยืนยันว่าคงเป็นเดโมในเบราว์เซอร์ | decide | owner | ไม่มีใน `PRODUCT.md` ส่วน What does not work |
 
 ## Open questions
 
-- สถานะ Vercel Git link ปัจจุบัน [ต้องยืนยัน]: `PRODUCT.md` เขียนไว้ 2026-10-23 ว่า push ไป main ไม่ deploy; ตรวจที่ Vercel ก่อนเชื่อว่ายังเป็นจริง
+- เรื่อง deploy ไม่มีคำถามค้าง: Vercel Git link ชี้ repo นี้ branch `main` (ตรวจ 2026-11-28) production = main HEAD 67d4122
